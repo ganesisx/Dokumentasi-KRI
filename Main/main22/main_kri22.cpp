@@ -214,6 +214,18 @@ Driver motor[]={
     |___|           |___|
 */
 
+/* Omniwheel 3 wheels x-Configuration
+                   ____          y
+     ___ __________\ 0 \         ^
+    / 2/|           |\__\        |
+   /__/ |           |            |---> x
+        |           |                  
+        |           |
+        |___________| 
+                / 1/
+               /__/
+*/
+
 SharpIR sensor(PB_0, 430);
 
 //Objek serial
@@ -457,6 +469,12 @@ void taskComputeSpeed(){
         //omega[1] = ((vy+vx+(beta*(midX+midY)))/rWheel)/6.28*330*0.035; //1050
         //omega[2] = ((vy+vx-(beta*(midX+midY)))/rWheel)/6.28*330*0.035; //1050
         //omega[3] = ((vy-vx+(beta*(midX+midY)))/rWheel)/6.28*330*0.035; //640
+
+        // x_config Omniwheel 3 wheels
+        // omega[0] = ((1)*(vx + 0 - beta*pos/sqrt2)/rWheel)/6.28*330*0.035; 
+        // omega[1] = ((1)*(-vx/2 - vy*sin(PI/3) - beta*pos/sqrt2)/rWheel)/6.28*330*0.035; 
+        // omega[3] = ((1)*(-vx/2 + vy*sin(PI/3) - beta*pos/sqrt2)/rWheel)/6.28*330*0.035; 
+        // omega[2] = 0;
     
         if (vy!=0 && vx!=0 && beta ==0){ 
             for (int i = 0; i < 4; i++){
