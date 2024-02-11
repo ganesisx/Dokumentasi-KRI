@@ -1,18 +1,11 @@
 # KRTMI Ganesis ITB
 
-### KRI 2022 (Digital Twin)
-> A robot that can take coins from a rack then bring it and put it in the desired area  
-**Hardware**: Nucleo F446RE and Arduino with USB Host Shield   
-**Wheels**: 4 Omni Wheels  
-**Gripper Actuator**: Dynamixel AX-12A  
-**Major Problem**: PID tuning  
+## Robot Pemilah
 
-### KRI 2023 (Digital Twin)
-> A robot that can take coins from a rack then bring it and put it in the desired area  
-**Hardware**: Nucleo F446RE and ESP32  
-**Wheels**: 4 Omni Wheels  
-**Gripper Actuator**: Dynamixel AX-12A  
-**Major Problem**: PID tuning  
+**Hardware**: 
+- Raspberry Pi 4 Model B 8 GB Ram with Ubuntu 22.04.3 LTS OS
+- Arduino Mega 2560
+- Logitech C920
 
-
-**NOTE** Change branch to acces different year codes
+Python script is run on Raspi to control all movement. Communication between Raspi and Arduino using USB Serial.
+Camera used for computer vision to detect garbages and the bin. The CV will return coordinates
