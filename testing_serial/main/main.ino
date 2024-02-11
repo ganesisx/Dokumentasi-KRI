@@ -1,3 +1,4 @@
+int ctr = 0;
 void setup() {
   Serial.begin(115200);
   while(!Serial) {} // Wait until serial connection is set
