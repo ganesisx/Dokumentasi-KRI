@@ -1,8 +1,3 @@
-
-#define FORWARD_SPEED 180
-#define ADJUST_SPEED 0
-#define TURN_SPEED 180
-
 //Censor buat Robot
 
 int motor1 = 5;
