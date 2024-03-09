@@ -1,97 +1,91 @@
-//Censor buat Robot
+#define STOP_SPEED 0 // Speed to stop
+#define FORWARD_SPEED 255 // Max speed for maju
+#define BACKWARD_SPEED 255 // Max speed for mundur (same as forward but reverse direction)
+#define TURN_SPEED 128    // Speed for belok
+#define ADJUST_SPEED 192  // Speed for slight adjustments
 
-int motor1 = 5;
-int motor2 = 6;
-int motor3 = 7;
-int motor4 = 8;
+int motor1 = 5; // Front-Left Wheel
+int motor2 = 6; // Front-Right Wheel
+int motor3 = 7; // Back-Right Wheel
+int motor4 = 8; // Back-Left Wheel
 
-int SENSORPins[5] = {A0, A1, A2, A3, A4};
-
-#define FORWARD_SPEED 100
-#define TURN_SPEED 50
-#define ADJUST_SPEED 75
+int sensorPins[5] = {A0, A1, A2, A3, A4};
 
 void setup() {
-    // Setup motor
     pinMode(motor1, OUTPUT);
     pinMode(motor2, OUTPUT);
     pinMode(motor3, OUTPUT);
     pinMode(motor4, OUTPUT);
 
-    //Setup sensor
     for (int i = 0; i < 5; i++){
         pinMode(sensorPins[i], INPUT);
     }
 }
 
 void loop() {
-    //Buat baca sensor!!
-    bool sensorStates[5]; //Pake bool karena HIGH and LOW
+    bool sensorStates[5];
     for (int i = 0; i < 5; i++){
-        sensorStates[i] = digitalRead(SENSORPins[i]);
+        sensorStates[i] = digitalRead(sensorPins[i]);
     }
 
-    //Sensor States!!
-    if (sensorStates[2]){ //Pokoke tengah
+    // Example logic for movement based on a single sensor input
+    if (sensorStates[2]){ // Forward
         moveForward();
-    } else if (sensorStates[1] || sensorStates[3]){
-        if (sensorStates[1]){
-            adjustLeft();
-        }else {
-            adjustRight();
-        }
-    }else if (sensorStates[0] || sensorStates[4]){
-        if (sensprStates[4]){
-            sharpRight();
-        }else {
-            sharpLeft();
-        }
-    }else {
+    } else if (sensorStates[1]){ // Rotate Left
+        rotateLeft();
+    } else if (sensorStates[3]){ // Rotate Right
+        rotateRight();
+    } else if (sensorStates[0]){ // Move Left
+        moveLeft();
+    } else if (sensorStates[4]){ // Move Right
+        moveRight();
+    } else {
         noMovement();
     }
 }
 
-
 void moveForward(){
-    // Contoh menggunakan analogWrite() untuk kecepatan tertentu, ganti dengan nilai kecepatan sesuai kebutuhan
     analogWrite(motor1, FORWARD_SPEED);
     analogWrite(motor2, FORWARD_SPEED);
     analogWrite(motor3, FORWARD_SPEED);
     analogWrite(motor4, FORWARD_SPEED);
 }
 
-void adjustLeft(){
-    analogWrite(motor1, ADJUST_SPEED);
+void moveLeft(){
+    // For lateral left movement, reverse the rollers on one side and forward on the other
+    analogWrite(motor1, BACKWARD_SPEED);
     analogWrite(motor2, FORWARD_SPEED);
-    analogWrite(motor3, ADJUST_SPEED);
+    analogWrite(motor3, BACKWARD_SPEED);
     analogWrite(motor4, FORWARD_SPEED);
 }
 
-void adjustRight(){
+void moveRight(){
+    // For lateral right movement, reverse the above logic
     analogWrite(motor1, FORWARD_SPEED);
-    analogWrite(motor2, ADJUST_SPEED);
+    analogWrite(motor2, BACKWARD_SPEED);
     analogWrite(motor3, FORWARD_SPEED);
-    analogWrite(motor4, ADJUST_SPEED);
+    analogWrite(motor4, BACKWARD_SPEED);
 }
 
-void sharpLeft(){
-    analogWrite(motor1, TURN_SPEED); // Misal mundur
+void rotateLeft(){
+    // To rotate left, the left wheels go backward, the right wheels go forward
+    analogWrite(motor1, BACKWARD_SPEED);
     analogWrite(motor2, FORWARD_SPEED);
-    analogWrite(motor3, TURN_SPEED); // Misal mundur
-    analogWrite(motor4, FORWARD_SPEED);
+    analogWrite(motor3, FORWARD_SPEED);
+    analogWrite(motor4, BACKWARD_SPEED);
 }
 
-void sharpRight(){
+void rotateRight(){
+    // To rotate right, reverse the left rotation logic
     analogWrite(motor1, FORWARD_SPEED);
-    analogWrite(motor2, TURN_SPEED); // Misal mundur
-    analogWrite(motor3, FORWARD_SPEED);
-    analogWrite(motor4, TURN_SPEED); // Misal mundur
+    analogWrite(motor2, BACKWARD_SPEED);
+    analogWrite(motor3, BACKWARD_SPEED);
+    analogWrite(motor4, FORWARD_SPEED);
 }
 
 void noMovement(){
-    // Menghentikan semua motor
-    digitalWrite(motor1, LOW);
-    digitalWrite(motor2, LOW);
-    digitalWrite(motor3, LOW);
-    digitalWrite(motor4, LOW);
+    analogWrite(motor1, STOP_SPEED);
+    analogWrite(motor2, STOP_SPEED);
+    analogWrite(motor3, STOP_SPEED);
+    analogWrite(motor4, STOP_SPEED);
 }
