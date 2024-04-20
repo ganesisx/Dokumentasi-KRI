@@ -3,9 +3,6 @@ import os
 import platform
 import sys
 from pathlib import Path
-import serial
-import json
-
 
 import torch
 
@@ -87,11 +84,6 @@ def run(
     # Run inference
     model.warmup(imgsz=(1 if pt or model.triton else bs, 3, *imgsz))  # warmup
     seen, windows, dt = 0, [], (Profile(), Profile(), Profile())
-
-    #tes
-
-    list_object_detected = []
-
     for path, im, im0s, vid_cap, s in dataset:
         with dt[0]:
             im = torch.from_numpy(im).to(model.device)
@@ -104,6 +96,7 @@ def run(
         with dt[1]:
             visualize = increment_path(save_dir / Path(path).stem, mkdir=True) if visualize else False
             pred = model(im, augment=augment, visualize=visualize)
+            pred = pred[0][1]
 
         # NMS
         with dt[2]:
@@ -148,28 +141,12 @@ def run(
                     if save_img or save_crop or view_img:  # Add bbox to image
                         c = int(cls)  # integer class
                         label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
-
-
                         annotator.box_label(xyxy, label, color=colors(c, True))
                     if save_crop:
                         save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
 
-                    coordinat_x = int((xyxy[0] + xyxy[2]) / 2)
-                    coordinat_y = int((xyxy[1]) + xyxy[4] / 2)
-
-                    objek_sampah = {
-                        'kelas' : names[int(cls)],
-                        'confidence' : float(conf),
-                        'koordinat' : [int(coordinat_x), int(coordinat_y)]
-                    }
-
-                    list_object_detected.append(objek_sampah)
-
-                    #DIBAGIAN INI DIPAKE BUAT NGIRIM INFORMASI KOORDINAT
-
             # Stream results
             im0 = annotator.result()
-
             if view_img:
                 if platform.system() == 'Linux' and p not in windows:
                     windows.append(p)
@@ -203,13 +180,13 @@ def run(
     # Print results
     t = tuple(x.t / seen * 1E3 for x in dt)  # speeds per image
     LOGGER.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms NMS per image at shape {(1, 3, *imgsz)}' % t)
-    # if save_txt or save_img:
-    #     s = f"\n{len(list(save_dir.glob('labels/*.txt')))} labels saved to {save_dir / 'labels'}" if save_txt else ''
-    #     LOGGER.info(f"Results saved to {colorstr('bold', save_dir)}{s}")
+    if save_txt or save_img:
+        s = f"\n{len(list(save_dir.glob('labels/*.txt')))} labels saved to {save_dir / 'labels'}" if save_txt else ''
+        LOGGER.info(f"Results saved to {colorstr('bold', save_dir)}{s}")
     if update:
         strip_optimizer(weights[0])  # update model (to fix SourceChangeWarning)
 
-    
+
 def parse_opt():
     parser = argparse.ArgumentParser()
     parser.add_argument('--weights', nargs='+', type=str, default=ROOT / 'yolo.pt', help='model path or triton URL')
@@ -248,7 +225,7 @@ def parse_opt():
 def main(opt):
     # check_requirements(exclude=('tensorboard', 'thop'))
     run(**vars(opt))
-    # print("halo")
+
 
 if __name__ == "__main__":
     opt = parse_opt()
