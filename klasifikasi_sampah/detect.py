@@ -3,6 +3,9 @@ import os
 import platform
 import sys
 from pathlib import Path
+import serial
+import json
+
 
 import torch
 
@@ -84,6 +87,11 @@ def run(
     # Run inference
     model.warmup(imgsz=(1 if pt or model.triton else bs, 3, *imgsz))  # warmup
     seen, windows, dt = 0, [], (Profile(), Profile(), Profile())
+
+    #tes
+
+    list_object_detected = []
+
     for path, im, im0s, vid_cap, s in dataset:
         with dt[0]:
             im = torch.from_numpy(im).to(model.device)
@@ -140,12 +148,26 @@ def run(
                     if save_img or save_crop or view_img:  # Add bbox to image
                         c = int(cls)  # integer class
                         label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
+
+
                         annotator.box_label(xyxy, label, color=colors(c, True))
                     if save_crop:
                         save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
 
+                    coordinat_x = int((xyxy[0] + xyxy[2]) / 2)
+                    coordinat_y = int((xyxy[1]) + xyxy[4] / 2)
+
+                    objek_sampah = {
+                        'kelas' : names[int(cls)],
+                        'confidence' : float(conf),
+                        'koordinat' : [int(coordinat_x), int(coordinat_y)]
+                    }
+
+                    list_object_detected.append(objek_sampah)
+
             # Stream results
             im0 = annotator.result()
+
             if view_img:
                 if platform.system() == 'Linux' and p not in windows:
                     windows.append(p)
@@ -175,6 +197,8 @@ def run(
 
         # Print time (inference-only)
         LOGGER.info(f"{s}{'' if len(det) else '(no detections), '}{dt[1].dt * 1E3:.1f}ms")
+
+
 
     # Print results
     t = tuple(x.t / seen * 1E3 for x in dt)  # speeds per image
