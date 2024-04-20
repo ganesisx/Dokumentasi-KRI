@@ -4,6 +4,9 @@ import math
 import serial
 import time
 
+# Initialize serial connection (adjust 'COM3' and 9600 to match your setup)
+ser = serial.Serial('COM3', 9600, timeout=1)
+
 # Start capturing video from the webcam
 cap = cv.VideoCapture(1)  # Change to 0 if camera 1 is not available
 
@@ -23,12 +26,18 @@ while True:
         break
 
     hsv_img = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
-    mask = cv.inRange(hsv_img, lower_white, upper_white)
-    maskg = cv.inRange(hsv_img, lower_green, upper_green)
+    final_mask = cv.inRange(hsv_img, lower_white, upper_white)
+    # maskg = cv.inRange(hsv_img, lower_green, upper_green)
 
-    final_mask = cv.bitwise_and(cv.bitwise_not(maskg), mask)
+    # final_mask = cv.bitwise_and(cv.bitwise_not(maskg), mask)
+    # Apply dilation
+    kernel = np.ones((7,7), np.uint8)  # You can adjust the kernel size
+    mask_dilated = cv.dilate(final_mask, kernel, iterations=2)  # Increase iterations for more dilation
+    mask_eroded = cv.erode(mask_dilated, kernel, iterations=2)  # Adjust iterations as needed
 
-    contours, hierarchy = cv.findContours(final_mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
+
+
+    contours, hierarchy = cv.findContours(mask_eroded, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
 
     if len(contours) > 0:
         c = max(contours, key=cv.contourArea)
@@ -49,7 +58,7 @@ while True:
             cv.circle(frame, (cx, cy), 5, (255, 255, 255), -1)  # Draw circle at contour center
 
     cv.drawContours(frame, contours, -1, (0, 255, 0), 1)
-    cv.imshow("Mask", final_mask)
+    cv.imshow("Mask", mask_eroded)
     cv.imshow("Frame", frame)
 
     if cv.waitKey(1) == ord('q'):  # Press 'q' to quit
