@@ -5,12 +5,18 @@ main function to parse data from serial and control the actuator. It also takes 
 rom sensors and send it to python script through serial.
 
 Serial Setup:
-    v pwm0 pwm1 pwm2 pwm3 arm1_posX arm1_posY arm1_grip arm2_posX arm2_posY arm2_grip sweep_posX sweep_posY sweep_grip
-Character v is flag for the right command
+  v pwm0 pwm1 pwm2 pwm3 arm1_posX arm1_posY arm1_type arm2_posX arm2_posY arm2_type
+  Character v is flag for the right command
+  Trash type in variable arm1_type or arm2_type represented as int as follows
+  * 0 : 
+  * 1 : 
+  * 2 : 
+  * 3 : 
+  * 4 : 
 
 There are two ways to debug this code,
-    * OLED 128x64 Display
-    * Serial Monitor
+   * OLED 128x64 Display
+   * Serial Monitor
 It is preferred to use the OLED Display since the serial is also being used by python
 script
 
@@ -23,13 +29,71 @@ Debug input example:
 v 125 -125 125 -125 321.12345 -321.12345 1 321.12345 -321.12345 1 321.12345 -321.12345 1
 
 ***************************************************************************************/
+#include "Driver.h"
+#include "Encoder.h"
+#include "stepper.h"
+
+//======== OBject Declarations ========//
+// Motor Driver 2 pin
+Driver motor0(6,7);
+Driver motor1(8,9);
+Driver motor2(10,11);
+Driver motor3(12,13);
+
+// Encoder
+#define NO_ENCODER
+
+// Stepper
+
+//======== Variables ========//
+// Arm structs
+struct {
+  int type;   // Trash type
+  float posX; // X coordinate target
+  float posY; // Y coordinate target
+} arm1, arm2;
+
+// Motor speed setpoint
+int spd0, spd1, spd2, spd3;
+
+// Trash 
+
+//======== Serial Setup Between Microcontroller to SBC Using USB ========//
+/* SERIAL SETUP FOR INCOMING DATA
+v pwm0 pwm1 pwm2 pwm3 arm1_posX arm1_posY arm1_type arm2_posX arm2_posY arm2_type
+character v is flag for the right command from sbc to arduino
+NOTE: space is the delimiter
+*/
+const int data_length = 8;  // Variable to hold each serial data length
+char data[data_length];     // Variable to hold arguments
+char chr;                   // Variable to hold an input character
+int state = -1;             // Variable to determine which parmeter is being read
+short idx = 0;              // Variable of data array index
+void parse_data();          // Parsing incoming data
+void input_commands();      // Insert value to desired variable after parsing serial input
+void clear_commands();      // Clear the current command parameters
+
+/* SERIAL 
+
+
+//======== Debugging ========//
+/* !!NOTE: Use this if you're not running the python scripts
+Debugging Read Value using Serial Monitor
+Comment the define and uncomment the undef if not used and vice versa
+*/
+// #define DEBUG
+#undef DEBUG
+
+#if defined(DEBUG) || defined(DISPLAY)
+  void print_commands();  // Function to print input values
+#endif
 
 /* 
 Debugging Read Value using OLED 128 x 64
 Comment the define and uncomment the undef if not used and vice versa
 */
-#define DISPLAY
-// #undef DISPLAY
+// #define DISPLAY
+#undef DISPLAY
 
 #ifdef DISPLAY
   #include <SPI.h>
@@ -53,40 +117,6 @@ Comment the define and uncomment the undef if not used and vice versa
     display.clearDisplay();
   }
 #endif
-
-/* 
-Debugging Read Value using Serial Monitor
-Comment the define and uncomment the undef if not used and vice versa
-NOTE: Use this when you're not running the python scripts
-*/
-// #define DEBUG
-#undef DEBUG
-
-#if defined(DEBUG) || defined(DISPLAY)
-  void print_commands();  // Function to print input values
-#endif
-
-struct {
-  int grip;
-  float posX;
-  float posY;
-} m_arm1, m_arm2, sweep_arm;
-
-int spd0, spd1, spd2, spd3;
-
-
-/* SERIAL SETUP
-v pwm0 pwm1 pwm2 pwm3 arm1_posX arm1_posY arm1_grip arm2_posX arm2_posY arm2_grip sweep_posX sweep_posY sweep_grip
-character v is flag for the right command
-NOTE: space is the delimiter
-*/
-const int data_length = 8;  // Variable to hold each serial data length
-char data[data_length];     // Variable to hold arguments
-char chr;                   // Variable to hold an input character
-int state = -1;             // Variable to determine which parmeter is being read
-short idx = 0;              // Variable of data array index
-void input_commands();      // Insert value to desired variable after parsing serial input
-void clear_commands();      // Clear the current command parameters
 
 
 void setup() {
@@ -122,7 +152,24 @@ void setup() {
 }
 
 void loop() {
+  // Read and parse incoming data
+  parse_data();
 
+  // Move motor
+  #ifdef NO_ENCODER
+    motor0.set_motor_speed(spd0);
+    motor1.set_motor_speed(spd1);
+    motor2.set_motor_speed(spd2);
+    motor3.set_motor_speed(spd3);
+  #endif
+
+  // Move Arm
+  
+  // Send data to sbc
+}
+
+/*========== FUNCTIONS DEFINITIONS ==========*/
+void parse_data() {
   while (Serial.available() > 0) {
     // Read the next character
     chr = Serial.read();
@@ -152,7 +199,7 @@ void loop() {
         print_commands();
       #endif
     }
-    else if (chr == 32) {
+    else if (chr == 32) { // Detect space
       data[idx] = NULL;
       input_commands();
       clear_commands();
@@ -164,10 +211,8 @@ void loop() {
       idx++;
     }
   }
-  
 }
 
-/*========== FUNCTIONS DEFINITIONS ==========*/
 void input_commands() {
   switch (state) {
     /* ============= MOTOR TARGET SPEED ============= */
@@ -186,35 +231,26 @@ void input_commands() {
     
     /* ============= ARM1 ============= */
     case 5:
-      m_arm1.posX = atof(data);
+      arm1.posX = atof(data);
       break;
     case 6:
-      m_arm1.posY = atof(data);
+      arm1.posY = atof(data);
       break;
     case 7:
-      m_arm1.grip = atoi(data);
+      arm1.type = atoi(data);
       break;
 
     /* ============= ARM2 ============= */
     case 8:
-      m_arm2.posX = atof(data);
+      arm2.posX = atof(data);
       break;
     case 9:
-      m_arm2.posY = atof(data);
+      arm2.posY = atof(data);
       break;
     case 10:
-      m_arm2.grip = atoi(data);
+      arm2.type = atoi(data);
       break;
     /* ============= SWEEP ARM ============= */
-    case 11:
-      sweep_arm.posX = atof(data);
-      break;
-    case 12:
-      sweep_arm.posY = atof(data);
-      break;
-    case 13:
-      sweep_arm.grip = atoi(data);
-      break;
 
     default:
       clear_commands();
@@ -240,9 +276,9 @@ void clear_commands() {
       outString += "arm1_posY = " + String(m_arm1.posY) +"\n";
       outString += "arm1_grip = " + String(m_arm1.grip) +"\n";
 
-      // outString += "arm2_posX = " + String(m_arm2.posX) +"\n";
-      // outString += "arm2_posY = " + String(m_arm2.posY) +"\n";
-      // outString += "arm2_grip = " + String(m_arm2.grip) +"\n";
+      outString += "arm2_posX = " + String(m_arm2.posX) +"\n";
+      outString += "arm2_posY = " + String(m_arm2.posY) +"\n";
+      outString += "arm2_grip = " + String(m_arm2.grip) +"\n";
 
       Serial.println(outString);
     #endif
@@ -253,22 +289,18 @@ void clear_commands() {
       // and add more output string variable
 
 
-      // String outDisp = "PWM_0 = " + String(spd0);
-      // String outDisp = "PWM_0 = " + String(spd0);
-      // String outDisp = "PWM_0 = " + String(spd0);
-      // String outDisp = "PWM_0 = " + String(spd0);
+      String outDisp = "PWM_0 = " + String(spd0);
+      String outDisp = "PWM_0 = " + String(spd0);
+      String outDisp = "PWM_0 = " + String(spd0);
+      String outDisp = "PWM_0 = " + String(spd0);
 
-      // String outDisp = "arm1_posX = " + String(m_arm1.posX);
-      // String outDisp = "arm1_posY = " + String(m_arm1.posY);
-      // String outDisp = "arm1_grip = " + String(m_arm1.grip);
+      String outDisp = "arm1_posX = " + String(m_arm1.posX);
+      String outDisp = "arm1_posY = " + String(m_arm1.posY);
+      String outDisp = "arm1_grip = " + String(m_arm1.grip);
 
-      // String outDisp = "arm2_posX = " + String(m_arm2.posX);
-      // String outDisp = "arm2_posY = " + String(m_arm2.posY);
-      // String outDisp = "arm2_grip = " + String(m_arm2.grip);
-
-      // String outDisp = "s_arm_posX = " + String(sweep_arm.posX);
-      // String outDisp = "s_arm_posY = " + String(sweep_arm.posY);
-      String outDisp = "s_arm_grip = " + String(sweep_arm.grip);
+      String outDisp = "arm2_posX = " + String(m_arm2.posX);
+      String outDisp = "arm2_posY = " + String(m_arm2.posY);
+      String outDisp = "arm2_grip = " + String(m_arm2.grip);
 
       new_display(outDisp, 0, 1);
     #endif
