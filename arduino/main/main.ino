@@ -26,11 +26,12 @@ Copyright (c) 2024, Ganesis KRTMI ITB.
 All rights reserved.
 
 Debug input example: 
-v 125 -125 125 -125 321.12345 -321.12345 1 321.12345 -321.12345 1 321.12345 -321.12345 1
+v 125 -125 125 -125 321.12345 -321.12345 1 321.12345 -321.12345 1 
 
 ***************************************************************************************/
 #include "Driver.h"
 #include "Encoder.h"
+#include "Pid.h"
 #include "stepper.h"
 
 //======== OBject Declarations ========//
@@ -39,6 +40,42 @@ Driver motor0(6,7);
 Driver motor1(8,9);
 Driver motor2(10,11);
 Driver motor3(12,13);
+
+// Encoder
+Encoder encMotor0(9,8,330);
+Encoder encMotor1(11,10,330);
+Encoder encMotor2(13,12,330);
+Encoder encMotor3(15,14,330);
+
+// kp, ki, dan kd
+double kp1m[] = {
+    0.0082, // Motor 0
+    0.0087, // Motor 1
+    0.0093, // Motor 2
+    0.0088, // Motor 3
+};
+
+double ki1m[] = {
+    0.0008100, // Motor 0
+    0.0007750, // Motor 1
+    0.0005500, // Motor 2
+    0.00077939, // Motor 3
+};
+
+double kd[] = {
+    0.001, // Motor 0
+    0.001, // Motor 1
+    0.001, // Motor 2
+    0.0005, // Motor 3
+};
+
+// PID
+PID pid1m[] = { //PID maju
+    PID(kp1m[0], ki1m[0], kd[0], 1000), // Motor 0
+    PID(kp1m[1], ki1m[1], kd[1], 1000), // Motor 1
+    PID(kp1m[2], ki1m[2], kd[2], 1000), // Motor 2
+    PID(kp1m[3], ki1m[3], kd[3], 1000)  // Motor 3
+};
 
 // Encoder
 #define NO_ENCODER
@@ -55,6 +92,10 @@ struct {
 
 // Motor speed setpoint
 int spd0, spd1, spd2, spd3;
+// Current Motor Speed
+int currspd0, currspd1, currspd2, currspd3;
+// PWM
+double pwmMotor0, pwmMotor1, pwmMotor2, pwmMotor3;
 
 // Trash 
 
@@ -162,7 +203,25 @@ void loop() {
     motor2.set_motor_speed(spd2);
     motor3.set_motor_speed(spd3);
   #endif
+    currspd0 = encMotor0.getPulses()/2;
+    currspd1 = encMotor1.getPulses()/2;
+    currspd2 = encMotor2.getPulses()/2;
+    currspd3 = encMotor3.getPulses()/2;
 
+    encMotor0.reset();
+    encMotor1.reset();
+    encMotor2.reset();
+    encMotor3.reset();
+
+    pwmMotor0 = pid1m[0].createpwm(spd0,currspd0);
+    pwmMotor1 = pid1m[1].createpwm(spd1,currspd1);
+    pwmMotor2 = pid1m[2].createpwm(spd2,currspd2);
+    pwmMotor3 = pid1m[3].createpwm(spd3,currspd3);
+
+    motor0.set_motor_speed(pwmMotor0);
+    motor1.set_motor_speed(pwmMotor1);
+    motor2.set_motor_speed(pwmMotor2);
+    motor3.set_motor_speed(pwmMotor3);
   // Move Arm
   
   // Send data to sbc
