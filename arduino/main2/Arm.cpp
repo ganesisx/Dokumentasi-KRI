@@ -40,9 +40,11 @@
 #include <Arduino.h>
 #include "Arm.h"
 
-Arm::Arm(uint8_t stepPin1, uint8_t dirPin1, uint8_t stepPin2, uint8_t dirPin2)
+Arm::Arm(uint8_t stepPin1, uint8_t dirPin1, uint8_t stepPin2, uint8_t dirPin2, uint8_t stepPin1R, uint8_t dirPin1R, uint8_t stepPin2R, uint8_t dirPin2R)
     : stepper(AccelStepper::DRIVER, stepPin1, dirPin1),
-      stepper2(AccelStepper::DRIVER, stepPin2, dirPin2) {
+      stepper2(AccelStepper::DRIVER, stepPin2, dirPin2),
+      stepperR(AccelStepper::DRIVER, stepPin1R, dirPin1R),
+      stepper2R(AccelStepper::DRIVER, stepPin2R, dirPin2R) {
     _stepPin1 = stepPin1;
     _dirPin1 = dirPin1;
     _stepPin2 = stepPin2;
@@ -54,11 +56,7 @@ Arm::Arm(uint8_t stepPin1, uint8_t dirPin1, uint8_t stepPin2, uint8_t dirPin2)
     stepper2.setMaxSpeed(400);
     stepper2.setAcceleration(400);
     stepper2.moveTo(0);
-}
 
-Arm::ArmR(uint8_t stepPin1R, uint8_t dirPin1R, uint8_t stepPin2R, uint8_t dirPin2R)
-    : stepper(AccelStepper::DRIVER, stepPin1R, dirPin1R),
-      stepper2(AccelStepper::DRIVER, stepPin2R, dirPin2R) {
     _stepPin1R = stepPin1R;
     _dirPin1R = dirPin1R;
     _stepPin2R = stepPin2R;
@@ -72,6 +70,7 @@ Arm::ArmR(uint8_t stepPin1R, uint8_t dirPin1R, uint8_t stepPin2R, uint8_t dirPin
     stepper2R.moveTo(0);
 }
 
+
 void Arm::move() {
     stepper.moveTo(angle1);
     stepper2.moveTo(angle2);
@@ -80,8 +79,8 @@ void Arm::move() {
 }
 
 void Arm::moveR() {
-    stepperR.moveTo(angle1);
-    stepper2R.moveTo(angle2);
+    stepperR.moveTo(angle1R);
+    stepper2R.moveTo(angle2R);
     stepperR.run();
     stepper2R.run();
 }
