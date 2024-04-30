@@ -41,7 +41,7 @@ Driver motor0(6,7);
 Driver motor1(8,9);
 Driver motor2(10,11);
 Driver motor3(12,13);
-Arm arm(48, 46, 29, 31, 3, 3, 3, 3);
+Arm arm(48, 46, 29, 31, 52, 50, 33, 35);
 
 
 // Encoder
