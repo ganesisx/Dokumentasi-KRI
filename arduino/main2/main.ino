@@ -41,13 +41,13 @@ Driver motor0(6,7);
 Driver motor1(8,9);
 Driver motor2(10,11);
 Driver motor3(12,13);
-Arm LArm(48, 46, 29, 31)
-ArmR RArm(48, 46, 29, 31)
+Arm arm(48, 46, 29, 31, 3, 3, 3, 3);
+
 
 // Encoder
 #define NO_ENCODER
 
-// LArm
+// arm
 
 //======== Variables ========//
 // Arm structs
@@ -192,8 +192,8 @@ void loop() {
 
 
   // Move Arm
-  LArm.move();
-  RArm.moveR();
+  arm.move();
+  arm.moveR();
   // Send data to sbc
 }
 
@@ -241,10 +241,10 @@ void parse_data() {
       idx++;
     }
   }
-  LArm.calculate(arm1.posX, arm1.posY);
+  arm.calculate(arm1.posX, arm1.posY);
   Serial.println(arm1.posX);
   Serial.println(arm1.posY);
-  RArm.calculateR(arm2.posX, arm2.posY);
+  arm.calculateR(arm2.posX, arm2.posY);
   Serial.println(arm2.posX);
   Serial.println(arm2.posY);
   }
