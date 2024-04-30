@@ -41,12 +41,13 @@ Driver motor0(6,7);
 Driver motor1(8,9);
 Driver motor2(10,11);
 Driver motor3(12,13);
-Arm stepper(48, 46, 29, 31)
+Arm LArm(48, 46, 29, 31)
+ArmR RArm(48, 46, 29, 31)
 
 // Encoder
 #define NO_ENCODER
 
-// Stepper
+// LArm
 
 //======== Variables ========//
 // Arm structs
@@ -191,7 +192,8 @@ void loop() {
 
 
   // Move Arm
-  stepper.move();
+  LArm.move();
+  RArm.moveR();
   // Send data to sbc
 }
 
@@ -239,9 +241,12 @@ void parse_data() {
       idx++;
     }
   }
-  stepper.calculate(arm1.posX, arm1.posY);
+  LArm.calculate(arm1.posX, arm1.posY);
   Serial.println(arm1.posX);
   Serial.println(arm1.posY);
+  RArm.calculateR(arm2.posX, arm2.posY);
+  Serial.println(arm2.posX);
+  Serial.println(arm2.posY);
   }
 }
 
