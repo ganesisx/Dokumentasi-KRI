@@ -41,8 +41,7 @@ Driver motor0(6,7);
 Driver motor1(8,9);
 Driver motor2(10,11);
 Driver motor3(12,13);
-Arm arm(48, 46, 29, 31, 52, 50, 33, 35);
-
+Arm arm(48, 46, 29, 31, 52, 50, 33, 35, 26, 53, 49, 51);
 
 // Encoder
 #define NO_ENCODER
@@ -127,6 +126,11 @@ void setup() {
   pinMode(5, OUTPUT);
   digitalWrite(5, LOW);
   Serial.begin(500000);
+  // Serial.setTimeout(10);
+  arm.kalibrasi();
+  arm.kalibrasiR();
+  arm.kalibrasi();
+  arm.kalibrasiR();
   while(!Serial) {} // Wait until serial connection is set
 
   #ifdef DISPLAY
@@ -240,26 +244,31 @@ void parse_data() {
   //     data[idx] = chr;
   //     idx++;
   //   }
-  chr = Serial.readString(); spd0 = Serial.parseInt(); spd1 = Serial.parseInt(); spd2 = Serial.parseInt(); spd3 = Serial.parseInt();
+  // chr = Serial.readString();
+  spd0 = Serial.parseInt(); spd1 = Serial.parseInt(); spd2 = Serial.parseInt(); spd3 = Serial.parseInt();
   arm1.posX = Serial.parseFloat(); arm1.posY = Serial.parseFloat(); arm1.type = Serial.parseInt();
   arm2.posX = Serial.parseFloat(); arm2.posY = Serial.parseFloat(); arm2.type = Serial.parseInt();
   float skip = Serial.parseFloat();
   // }
-  if(arm1.posX != 0 && arm1.posY != 0 && arm2.posX != 0 && arm2.posY != 0) {
-    Serial.print("POS ");
-    arm.calculate(arm1.posX, arm1.posY);
-    // Serial.print(arm1.posX);
-    // Serial.print(",");
-    // Serial.print(arm1.posY);
-    // Serial.print(",");
-    // // arm.calculateR(arm2.posX, arm2.posY);
-    // Serial.print(arm2.posX);
-    // Serial.print(",");
-    // Serial.println(arm2.posY);
+  if(arm1.type != -1){
+    if(arm1.posX != 0 && arm1.posY != 0) {
+      arm.calculate(arm1.posX, arm1.posY);
     }
-  if (arm.done()){
-     Serial.println("Char Data: " + String(chr));
   }
+
+  if(arm2.type != -1){
+    if (arm2.posX != 0 && arm2.posY != 0) {
+      arm.calculateR(arm2.posX, arm2.posY);
+    }
+  }
+
+  if (arm.done()){
+    //  Serial.println("Char Data: " + String(chr));
+    delay(500);
+    Serial.print("POS ");
+    Serial.print(arm1.posX); Serial.print(","); Serial.print(arm1.posY); Serial.print(",");
+    Serial.print(arm2.posX); Serial.print(","); Serial.println(arm2.posY);
+    }
   }
 }
 
