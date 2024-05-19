@@ -41,37 +41,45 @@ Driver motor1(8, 9);
 Driver motor2(10, 11);
 Driver motor3(12, 13);
 
+// Encoder
+#define ENCODER
 Encoder encMotor0(63, 62, 330);
 Encoder encMotor1(66, 67, 330);
 Encoder encMotor2(64, 65, 330);
 Encoder encMotor3(69, 68, 330);
+// Encoder addition to know position
+float pos = 0, enc_pulse = 0;
+const int channelA = 2, channelB=3;
+int pinA, pinB; //Condition of channelA and channel B
 
 // Encoder encMotor0(63, 64, 330);
 // Encoder encMotor1(65, 66, 330);
 // Encoder encMotor2(67, 68, 330);
 // Encoder encMotor3(69, 70, 330);
 
+//Kiri
 // kp, ki, dan kd
 double kp1m[] = {
-  10.0,  // Motor 0
-  10.0,  // Motor 1
-  10.0,  // Motor 2
-  10.0,  // Motor 3
+  0.5,  // Motor 0
+  0.7,  // Motor 1
+  0.4,  // Motor 2
+  0.7  // Motor 3
 };
 
 double ki1m[] = {
-  5.000000,   // Motor 0
-  5.000000,   // Motor 1
-  5.000000,   // Motor 2
-  5.000000,  // Motor 3
+  0.3,   // Motor 0
+  0.6,   // Motor 1
+  0.3,   // Motor 2
+  0.2  // Motor 3
+};
+double kd[] = {
+  0.0,   // Motor 0
+  0.0,   // Motor 1
+  0.0,   // Motor 2
+  0.0     // Motor 3
 };
 
-double kd[] = {
-  0.000,   // Motor 0
-  0.000,   // Motor 1
-  0.000,   // Motor 2
-  0.000,  // Motor 3
-};
+
 
 // PID
 PID pid1m[] = {
@@ -82,8 +90,7 @@ PID pid1m[] = {
   PID(kp1m[3], ki1m[3], kd[3], 1000)   // Motor 3
 };
 
-// Encoder
-#define ENCODER
+
 
 // Stepper
 
@@ -96,10 +103,10 @@ struct {
 } arm1, arm2;
 
 // Motor speed setpoint
-int spd0, spd1, spd2, spd3;
+float spd0, spd1, spd2, spd3;
 
 // Current Motor Speed
-int currspd0, currspd1, currspd2, currspd3;
+float currspd0, currspd1, currspd2, currspd3;
 // PWM
 double pwmMotor0, pwmMotor1, pwmMotor2, pwmMotor3;
 
@@ -172,7 +179,10 @@ void setup() {
   attachPCINT(digitalPinToPCINT(66), handleInterrupt1, CHANGE);
   attachPCINT(digitalPinToPCINT(64), handleInterrupt2, CHANGE);
   attachPCINT(digitalPinToPCINT(69), handleInterrupt3, CHANGE);
-
+  //Extra Encoder
+  attachInterrupt(digitalPinToInterrupt(channelA), ISR_ENCA, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(channelB), ISR_ENCB, CHANGE);
+  delay(5000);
   while (!Serial) {}  // Wait until serial connection is set
 
 #ifdef DISPLAY
@@ -206,10 +216,10 @@ void setup() {
 void loop() {
   // Read and parse incoming data
   // parse_data();
-  spd0 = 4;
-  spd1 = 4;
-  spd2 = 4;
-  spd3 = 4;
+  spd0 = 2;
+  spd1 = -5;
+  spd2 = 2;
+  spd3 = -4;
 
 // Move motor
 #ifdef NO_ENCODER
@@ -218,10 +228,15 @@ void loop() {
   motor2.set_motor_speed(spd2);
   motor3.set_motor_speed(spd3);
 #endif
-  currspd0 = fabs(encMotor0.getPulses());
-  currspd1 = fabs(encMotor1.getPulses());
-  currspd2 = fabs(encMotor2.getPulses());
-  currspd3 = fabs(encMotor3.getPulses());
+  // currspd0 = fabs(encMotor0.getPulses());
+  // currspd1 = fabs(encMotor1.getPulses());
+  // currspd2 = fabs(encMotor2.getPulses());
+  // currspd3 = fabs(encMotor3.getPulses());
+  currspd0 = encMotor0.getPulses();
+  currspd1 = encMotor1.getPulses();
+  currspd2 = encMotor2.getPulses();
+  currspd3 = encMotor3.getPulses();
+
 
   encMotor0.reset();
   encMotor1.reset();
@@ -234,13 +249,21 @@ void loop() {
   pwmMotor3 = pid1m[3].createpwm(spd3, currspd3);
 
   Serial.print(currspd0);
+  Serial.print(" ");
   Serial.print(currspd1);
+  Serial.print(" ");
   Serial.print(currspd2);
+  Serial.print(" ");
   Serial.print(currspd3);
+  Serial.print(" ");
   Serial.print("pwm");
+  Serial.print(" ");
   Serial.print(pwmMotor0);
+  Serial.print(" ");
   Serial.print(pwmMotor1);
+  Serial.print(" ");
   Serial.print(pwmMotor2);
+  Serial.print(" ");
   Serial.print(pwmMotor3);
   Serial.println("---------");
 
@@ -254,6 +277,11 @@ void loop() {
   motor1.set_motor_speed((pwmMotor1));
   motor2.set_motor_speed((pwmMotor2));
   motor3.set_motor_speed((pwmMotor3));
+
+  // motor0.set_motor_speed((0));
+  // motor1.set_motor_speed((0));
+  // motor2.set_motor_speed((0));
+  // motor3.set_motor_speed((0));
   // Move Arm
 
   // Send data to sbc
@@ -368,6 +396,13 @@ void handleInterrupt2() {
 void handleInterrupt3() {
   // Serial.println("3");
   encMotor3.encode();
+}
+
+void ISR_ENCA() {
+
+}
+void ISR_ENCB() {
+
 }
 
 #if defined(DEBUG) || defined(DISPLAY)
