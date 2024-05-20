@@ -41,7 +41,7 @@ v 125 -125 125 -125 321.12345 -321.12345 1 321.12345 -321.12345 1 321.12345 -321
 Driver motor0(6,7);
 Driver motor1(8,9);
 Driver motor2(10,11);
-Driver motor3(12,13);
+Driver motor3(12,4);
 // Driver motor0(999,999);
 // Driver motor1(998,999);
 // Driver motor2(910,911);
@@ -58,7 +58,7 @@ float pos = 0, enc_pulse = 0;
 const int channelA = 2, channelB=3;
 int pinA, pinB; //Condition of channelA and channel B
 float r_wheel = 3.0; // whel radius
-float jarak_checkpoint = 100.0;
+float jarak_checkpoint = 120.0;
 
 // Encoder encMotor0(63, 64, 330);
 // Encoder encMotor1(65, 66, 330);
@@ -112,6 +112,7 @@ unsigned long start;
 unsigned long start_search;
 unsigned long stop_search = 2000;
 int count = 0;
+int checkpoint = 0;
 
 // Motor speed setpoint
 float spd0, spd1, spd2, spd3;
@@ -231,27 +232,71 @@ void ISR_ENCB() {
   if(pinA==HIGH && pinB==HIGH)  enc_pulse++; // CCW
 }
 void tengah() {
+  distance_kanan, distance_kiri = ultrasonic();
 
+  Serial.print("pos =");
+  Serial.println(pos);
+
+
+//   if (distance_kanan <= set_jarak_kanan && distance_kiri <= set_jarak_kiri) {
+//     spd0 = 16;
+//     spd1 = -16;
+//     spd2 = 16;
+//     spd3 = -16;
+//   }
+//   else if(distance_kanan <= set_jarak_kanan && distance_kiri > set_jarak_kiri && distance_kiri < 50){
+//     spd0 = 16;
+//     spd1 = -16;
+//     spd2 = 16;
+//     spd3 = -16;
+//   }
+//   else if(distance_kanan > set_jarak_kanan && distance_kiri > set_jarak_kiri && distance_kiri < 50){
+//     spd0 = 16;
+//     spd1 = -16;
+//     spd2 = 16;
+//     spd3 = -16;
+//   }
+//   else if(distance_kanan > set_jarak_kanan && distance_kiri <= set_jarak_kiri){
+//     spd0 = 16;
+//     spd1 = -16;
+//     spd2 = 16;
+//     spd3 = -16;
+//   }
+
+
+
+  motor0.set_motor_speed((pwmMotor0));
+  motor1.set_motor_speed((pwmMotor1));
+  motor2.set_motor_speed((pwmMotor2));
+  motor3.set_motor_speed((pwmMotor3));
+
+  currspd0 = encMotor0.getPulses();
+  currspd1 = encMotor1.getPulses();
+  currspd2 = encMotor2.getPulses();
+  currspd3 = encMotor3.getPulses();
+
+  encMotor0.reset();
+  encMotor1.reset();
+  encMotor2.reset();
+  encMotor3.reset();
+
+  pwmMotor0 = pid1m[0].createpwm(spd0, currspd0);
+  pwmMotor1 = pid1m[1].createpwm(spd1, currspd1);
+  pwmMotor2 = pid1m[2].createpwm(spd2, currspd2);
+  pwmMotor3 = pid1m[3].createpwm(spd3, currspd3);
+
+  if (pos >= -3.25 && pos <= 3.25) {
+    if (state == 3) state = 2;
+    else if (state == 4) state = 5;
+    delay(1000);
+
+  }
 }
 
 void kiri() {
-  // Trigger ultrasonic sensor 1
-  digitalWrite(trigkanan, LOW);
-  delayMicroseconds(2);
-  digitalWrite(trigkanan, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigkanan, LOW);
-  duration_kanan = pulseIn(echokanan, HIGH);
-  distance_kanan = duration_kanan * 0.034 / 2;
 
-  // Trigger ultrasonic sensor 2
-  digitalWrite(trigkiri, LOW);
-  delayMicroseconds(2);
-  digitalWrite(trigkiri, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigkiri, LOW);
-  duration_kiri = pulseIn(echokiri, HIGH);
-  distance_kiri = duration_kiri * 0.034 / 2;
+  distance_kanan, distance_kiri = ultrasonic();
+
   Serial.print("pos =");
   Serial.println(pos);
 
@@ -304,24 +349,8 @@ void kiri() {
 }
 
 void kanan() {
-  
-  // Trigger ultrasonic sensor 1
-  digitalWrite(trigkanan, LOW);
-  delayMicroseconds(2);
-  digitalWrite(trigkanan, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigkanan, LOW);
-  duration_kanan = pulseIn(echokanan, HIGH);
-  distance_kanan = duration_kanan * 0.034 / 2;
+  distance_kanan, distance_kiri = ultrasonic();
 
-  // Trigger ultrasonic sensor 2
-  digitalWrite(trigkiri, LOW);
-  delayMicroseconds(2);
-  digitalWrite(trigkiri, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigkiri, LOW);
-  duration_kiri = pulseIn(echokiri, HIGH);
-  distance_kiri = duration_kiri * 0.034 / 2;
   Serial.print("pos = ");
   Serial.println(pos);
   spd0 = -16;
@@ -375,24 +404,11 @@ void kanan() {
 }
 
 void maju() {
-    // Trigger ultrasonic sensor 1
-  digitalWrite(trigkanan, LOW);
-  delayMicroseconds(2);
-  digitalWrite(trigkanan, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigkanan, LOW);
-  duration_kanan = pulseIn(echokanan, HIGH);
-  distance_kanan = duration_kanan * 0.034 / 2;
 
-  // Trigger ultrasonic sensor 2
-  digitalWrite(trigkiri, LOW);
-  delayMicroseconds(2);
-  digitalWrite(trigkiri, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigkiri, LOW);
-  duration_kiri = pulseIn(echokiri, HIGH);
-  distance_kiri = duration_kiri * 0.034 / 2;
+  distance_kanan, distance_kiri = ultrasonic();
 
+  Serial.print(pos);
+  Serial.print("\t");
   Serial.print(currspd0);
   Serial.print("\t");
   Serial.print(currspd1);
@@ -443,10 +459,7 @@ void maju() {
     spd3 = -32;
   }
   
-  if (distance_kanan <= set_jarak_kanan && distance_kiri <= set_jarak_kiri) {
-    stop();
-    if (currspd0 == 0 && currspd1 == 0 && currspd2 == 0 && currspd3 == 0) state = 0;
-  }
+  if (distance_kanan <= set_jarak_kanan && distance_kiri <= set_jarak_kiri) state = 0;
 
 
   currspd0 = encMotor0.getPulses();
@@ -504,6 +517,8 @@ void setup() {
   attachPCINT(digitalPinToPCINT(64), handleInterrupt2, CHANGE);
   attachPCINT(digitalPinToPCINT(69), handleInterrupt3, CHANGE);
   //Extra Encoder
+  pinMode(2, INPUT_PULLUP);
+  pinMode(3, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(channelA), ISR_ENCA, CHANGE);
   attachInterrupt(digitalPinToInterrupt(channelB), ISR_ENCB, CHANGE);
 
@@ -527,7 +542,7 @@ void setup() {
   arm.kalibrasiR();
   arm.kalibrasi();
   arm.kalibrasiR();
-  arm.selesai = false;
+  arm.selesai = true;
   arm.Lstate = 2; arm.Rstate = 2;
   
   // while(!Serial) {} // Wait until serial connection is set
@@ -560,42 +575,98 @@ void setup() {
   delay(5000);
 }
 
-void loop() {
-  // Read and parse incoming data
-  
-  // Position from Extra Encoder
+float ultrasonic() {
+      // Trigger ultrasonic sensor 1
+  digitalWrite(trigkanan, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigkanan, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigkanan, LOW);
+  duration_kanan = pulseIn(echokanan, HIGH);
+  distance_kanan = duration_kanan * 0.034 / 2;
 
+  // Trigger ultrasonic sensor 2
+  digitalWrite(trigkiri, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigkiri, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigkiri, LOW);
+  duration_kiri = pulseIn(echokiri, HIGH);
+  distance_kiri = duration_kiri * 0.034 / 2;
+  
+  return distance_kanan, distance_kiri;
+}
+void loop() {
+
+  // Position from Extra Encoder
   pos =  ((float)enc_pulse/(4*PPR)) * 6.2832 * r_wheel;
+  Serial.print(pos);
+  Serial.print("\t");
+  Serial.print(checkpoint);
+  Serial.print("\t");
+  Serial.println(state);
+
+
+  // Serial.print(enc_pulse);
   if (state == -1) {
     maju();
   }
   // move arm
   else if (state == 0) {
-  
-    if(Serial.available()>0 ) { //arm.selesai dihapus sementara
+    stop();
+    // Read and parse incoming data
+    if(Serial.available()>0 && arm.selesai) { //arm.selesai dihapus sementara
       Serial.println("state 0");
       chr = Serial.parseInt();
       if (chr == -999) {
         parse_data();
-        arm.move(arm1.type, arm2.type);
+        
       }
+    }
+    arm.move(arm1.type, arm2.type);
+  }
+
+  else if (state == 1) { // jalan ke kanan
+    count = 0;
+    kanan();
+    if (pos >= jarak_checkpoint && distance_kanan > 50) {
+      state = 0;
+      checkpoint += 1;
     }
   }
 
-  else if (state == 1) {
-    kanan();
-    if (pos == jarak_checkpoint) state = 0;
-    else if (distance_kanan > 50) state = 3;
-  }
-
-  else if (state == 2) {
+  else if (state == 2) { // jalan ke kiri
+    count = 0;
     kiri();
-    if (pos == -jarak_checkpoint) state = 3;
-    else if (distance_kiri > 50) state = 3;
+    if (pos <= -jarak_checkpoint && distance_kiri > 50) {
+      state = 0;
+      checkpoint = 2;
+    }
   }
 
-  else if (state == 3) {
+  else if (state == 3) { // jalan ke tengah dari kanan
+    count = 0;
+    spd0 = 16;
+    spd1 = -16;
+    spd2 = 16;
+    spd3 = -16;
     tengah();
+
+  }
+    else if (state == 4) { // jalan ke tengah dari kiri
+    count = 0;
+    spd0 = -16;
+    spd1 = 16;
+    spd2 = -16;
+    spd3 = 16;
+    tengah();
+
+  }
+  else if (state == 5) { // buang sampah
+    stop();
+    Serial.println("Buang Sampah");
+    count = 0;
+    
   }
   // start = millis();
 
@@ -613,7 +684,7 @@ void loop() {
 
 /*========== FUNCTIONS DEFINITIONS ==========*/
 void parse_data() {
-  if (Serial.available()>0 ){ //arm.selesai dihapus sementara
+  if (Serial.available()>0 && arm.selesai ){ //arm.selesai dihapus sementara
   // while (Serial.available() > 0) {
   //   // Read the next character
   //   chr = Serial.read();
@@ -675,11 +746,22 @@ void parse_data() {
       arm.calculateR(arm2.posX, arm2.posY);
     }
   }
-  if(arm1.type == 0 && arm2.type == 0) {
+  if(arm1.type <= 0 && arm2.type <= 0) {
     count += 1;
     Serial.println(count);
     if (count == 2) {
-      state = 1;
+      if (checkpoint == 0) {
+        state = 1;
+        Serial.println("Chechkpoint 0 selesai");
+      }
+      else if (checkpoint == 1) {
+        state = 3;
+        Serial.println("Chechkpoint 1 selesai");
+      }
+      else if (checkpoint == 2) {
+        state = 4;
+        Serial.println("Chechkpoint 2 selesai");
+      }
     }
   }
 
