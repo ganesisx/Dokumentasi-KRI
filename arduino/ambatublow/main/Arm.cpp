@@ -185,24 +185,48 @@ void Arm::move(int signal, int signal2) {
         sum_plastik += 1;
       }
     }
-    if (signal != 0 && signal2 == 0){
-      newangle1 = angle1;
-      newangle2 = angle2;
-      sig1 = signal;
-      checkL = 0;
-      Lstate = 1; Rstate = 2;
+    if (sig1 == 3 || sig1 == 5){
+      if (checkL != 0){
+        if (signal != 0 && signal2 == 0){
+          newangle1 = angle1;
+          newangle2 = angle2;
+          sig1 = signal;
+          checkL = 0;
+          Lstate = 1; Rstate = 2;
+          }
+        else if ((signal == 0) && signal2 == 00){
+          checkL = 0;
+          Lstate = 2; Rstate = 2;
+          }
+        else if (signal2 != 0){
+          newangle1R = angle1R;
+          newangle2R = angle2R;
+          sig2 = signal2;
+          checkL = 0;
+          Lstate = 2; Rstate = 1;
+          }
       }
-    else if ((signal == 0) && signal2 == 00){
-      checkL = 0;
-      Lstate = 2; Rstate = 2;
-      }
-    else if (signal2 != 0){
-      newangle1R = angle1R;
-      newangle2R = angle2R;
-      sig2 = signal2;
-      checkL = 0;
-      Lstate = 2; Rstate = 1;
-      }
+    }
+    else {
+        if (signal != 0 && signal2 == 0){
+          newangle1 = angle1;
+          newangle2 = angle2;
+          sig1 = signal;
+          checkL = 0;
+          Lstate = 1; Rstate = 2;
+          }
+        else if ((signal == 0) && signal2 == 00){
+          checkL = 0;
+          Lstate = 2; Rstate = 2;
+          }
+        else if (signal2 != 0){
+          newangle1R = angle1R;
+          newangle2R = angle2R;
+          sig2 = signal2;
+          checkL = 0;
+          Lstate = 2; Rstate = 1;
+          }      
+    }
     }
   }
 
@@ -312,17 +336,34 @@ void Arm::move(int signal, int signal2) {
         sum_plastik += 1;
       }
     }
-    if ((signal != 0)){
-      newangle1 = angle1;
-      newangle2 = angle2;
-      sig1 = signal;
-      checkL = 0;
-      Lstate = 1; Rstate = 3;
+    if (sig1 == 3 || sig1 == 5){
+      if (checkL != 0){
+        if ((signal != 0)){
+          newangle1 = angle1;
+          newangle2 = angle2;
+          sig1 = signal;
+          checkL = 0;
+          Lstate = 1; Rstate = 3;
+          }
+        else if(signal == 0 ){
+          checkL = 0;
+          Lstate = 2; Rstate = 3;
+          }
       }
-    else if(signal == 0 ){
-      checkL = 0;
-      Lstate = 2; Rstate = 3;
-      }
+    }
+    else {
+        if ((signal != 0)){
+          newangle1 = angle1;
+          newangle2 = angle2;
+          sig1 = signal;
+          checkL = 0;
+          Lstate = 1; Rstate = 3;
+          }
+        else if(signal == 0 ){
+          checkL = 0;
+          Lstate = 2; Rstate = 3;
+          }      
+    }
     }    
   }
 
@@ -330,12 +371,12 @@ void Arm::move(int signal, int signal2) {
     stepper.moveTo(wait); //if (stepper.currentPosition()>(-8400)){
     stepper2.moveTo(wait2);
     if (sig2 == 1){
-      stepperR.moveTo(2500);
-      stepper2R.moveTo(77);
+      stepperR.moveTo(2300);
+      stepper2R.moveTo(60);
     }
     else if (sig2 == 2){
-      stepperR.moveTo(3433);
-      stepper2R.moveTo(668);
+      stepperR.moveTo(850);
+      stepper2R.moveTo(40);
     }
     else if (sig2 == 3){
       if (checkR == 0){
@@ -355,12 +396,12 @@ void Arm::move(int signal, int signal2) {
         stepper2R.moveTo(165);
       }
       else if (checkR == 2){
-        stepperR.moveTo(4077);
+        stepperR.moveTo(4065);
         stepper2R.moveTo(633);
       }
     }
     else if (sig2 == 4){
-      stepperR.moveTo(4077);
+      stepperR.moveTo(4065);
       stepper2R.moveTo(633);
     }
     else if (sig2 == 5){ // Sampah Plastik
@@ -381,8 +422,8 @@ void Arm::move(int signal, int signal2) {
         stepper2R.moveTo(198);
       }
       else if (checkR == 2){
-          stepperR.moveTo(2500);
-          stepper2R.moveTo(77);
+          stepperR.moveTo(2300);
+          stepper2R.moveTo(65);
       }
     }
     if (stepper.distanceToGo() == 0 && stepper2.distanceToGo() == 0 && stepperR.distanceToGo() == 0 && stepper2R.distanceToGo() == 0){
@@ -412,24 +453,48 @@ void Arm::move(int signal, int signal2) {
         sum_plastik += 1;
       }
     } 
-    if ((signal == 0) && (signal2 != 0)){
-      newangle1R = angle1R;
-      newangle2R = angle2R;
-      sig2 = signal2;
-      checkR = 0;
-      Lstate = 2; Rstate = 1;
+    if (sig2 == 3 || sig2 == 5){
+      if (checkR != 0){
+        if ((signal == 0) && (signal2 != 0)){
+          newangle1R = angle1R;
+          newangle2R = angle2R;
+          sig2 = signal2;
+          checkR = 0;
+          Lstate = 2; Rstate = 1;
+          }
+        else if ((signal == 0) && (signal2 == 0 )){
+          checkR = 0;
+          Lstate = 2; Rstate = 2;
+          }
+        else if(signal != 0){
+          newangle1 = angle1;
+          newangle2 = angle2;
+          sig1 = signal;
+          checkR = 0;
+          Lstate = 1; Rstate = 2;
+          }
       }
-    else if ((signal == 0) && (signal2 == 0 )){
-      checkR = 0;
-      Lstate = 2; Rstate = 2;
-      }
-    else if(signal != 0){
-      newangle1 = angle1;
-      newangle2 = angle2;
-      sig1 = signal;
-      checkR = 0;
-      Lstate = 1; Rstate = 2;
-      }
+    }
+    else {
+        if ((signal == 0) && (signal2 != 0)){
+          newangle1R = angle1R;
+          newangle2R = angle2R;
+          sig2 = signal2;
+          checkR = 0;
+          Lstate = 2; Rstate = 1;
+          }
+        else if ((signal == 0) && (signal2 == 0 )){
+          checkR = 0;
+          Lstate = 2; Rstate = 2;
+          }
+        else if(signal != 0){
+          newangle1 = angle1;
+          newangle2 = angle2;
+          sig1 = signal;
+          checkR = 0;
+          Lstate = 1; Rstate = 2;
+          }
+    }
     }  
   }
 
@@ -437,12 +502,12 @@ void Arm::move(int signal, int signal2) {
     stepper.moveTo(newangle1); //if (stepper.currentPosition()>(-8400)){
     stepper2.moveTo(newangle2);
     if (sig2 == 1){
-      stepperR.moveTo(2500);
-      stepper2R.moveTo(77);
+      stepperR.moveTo(2300);
+      stepper2R.moveTo(65);
     }
     else if (sig2 == 2){
-      stepperR.moveTo(3433);
-      stepper2R.moveTo(668);
+      stepperR.moveTo(850);
+      stepper2R.moveTo(40);
     }
     else if (sig2 == 3){
       if (checkR == 0){
@@ -462,12 +527,12 @@ void Arm::move(int signal, int signal2) {
         stepper2R.moveTo(165);
       }
       else if (checkR == 2){
-        stepperR.moveTo(4077);
+        stepperR.moveTo(4065);
         stepper2R.moveTo(633);
       }
     }
     else if (sig2 == 4){
-      stepperR.moveTo(4077);
+      stepperR.moveTo(4065);
       stepper2R.moveTo(633);
     }
     else if (sig2 == 5){ // Sampah Plastik
@@ -475,6 +540,7 @@ void Arm::move(int signal, int signal2) {
         stepperR.moveTo(2333.25);
         stepper2R.moveTo(118.75);
         if (stepperR.distanceToGo() == 0 && stepper2R.distanceToGo() == 0) {
+          sucker_ch
           if (digitalRead(cek_logam) == LOW){
             checkR = 1;
           }
@@ -488,8 +554,8 @@ void Arm::move(int signal, int signal2) {
         stepper2R.moveTo(198);
       }
       else if (checkR == 2){
-          stepperR.moveTo(2500);
-          stepper2R.moveTo(77);
+          stepperR.moveTo(2300);
+          stepper2R.moveTo(65);
       }
     }
     if (stepper.distanceToGo() == 0 && stepper2.distanceToGo() == 0 && stepperR.distanceToGo() == 0 && stepper2R.distanceToGo() == 0){
@@ -519,20 +585,39 @@ void Arm::move(int signal, int signal2) {
         else if (checkR == 2){
           sum_plastik += 1;
         }
-      }    
-      if ((signal2 != 0)) {
-        newangle1R = angle1R;
-        newangle2R = angle2R;
-        // stepper2R.moveTo(75);
-        sig2 = signal2;
-        checkR = 0;
-        Lstate = 3; Rstate = 1;
+      }   
+      if (sig2 == 5 || sig2 == 3){
+        if (checkR != 0){
+          if ((signal2 != 0)) {
+            newangle1R = angle1R;
+            newangle2R = angle2R;
+            // stepper2R.moveTo(75);
+            sig2 = signal2;
+            checkR = 0;
+            Lstate = 3; Rstate = 1;
+            }
+          else if(signal2 == 0){
+            // stepper2R.moveTo(75);
+            checkR = 0;
+            Lstate = 3; Rstate = 2;
+            }
         }
-      else if(signal2 == 0){
-        // stepper2R.moveTo(75);
-        checkR = 0;
-        Lstate = 3; Rstate = 2;
-        }
+      }
+      else {
+          if ((signal2 != 0)) {
+            newangle1R = angle1R;
+            newangle2R = angle2R;
+            // stepper2R.moveTo(75);
+            sig2 = signal2;
+            checkR = 0;
+            Lstate = 3; Rstate = 1;
+            }
+          else if(signal2 == 0){
+            // stepper2R.moveTo(75);
+            checkR = 0;
+            Lstate = 3; Rstate = 2;
+            }        
+      } 
     }    
   }
   stepperR.run();
@@ -625,7 +710,7 @@ void Arm::buang(){
   }
   else if (Rstate == 4){
     if (sum_ferro != 0){
-      stepperR.moveTo(666.6); stepper2R.moveTo(87.5);
+      stepperR.moveTo(850); stepper2R.moveTo(40);
     }
     else if (sum_nonferro != 0){
       stepperR.moveTo(1700); stepper2R.moveTo(118.75);
@@ -692,18 +777,24 @@ void Arm::buang(){
 }
 
 void Arm::calculate(float dx, float dy) {
-    const float L_atas = 37, L_bwh = 36;
+    const float L_atas = 38.5, L_bwh = 37;
     angle1 = -(8 * 3.75 * 57.29578 * (-atan(dx / dy) + acos((dx * dx + dy * dy + L_bwh * L_bwh - L_atas * L_atas) / (2 * sqrt(dx * dx + dy * dy) * L_bwh)))) / 1.8;
     angle2 = -3.75 * 200 + 3.75 * 3 + 3.75 * 57.29578 * (acos((-dx * dx - dy * dy + L_bwh * L_bwh + L_atas * L_atas) / (2 * L_atas * L_bwh))) / 1.8;
 }
 void Arm::calculateR(float dx, float dy) {
-    const float L_atasR = 38, L_bwhR = 33.5;
-    angle1R = (-8 * 3.75  * 2 + 8 * 3.75 * 57.29578 * (atan(dx / dy) + acos((dx * dx + dy * dy + L_bwhR * L_bwhR - L_atasR * L_atasR) / (2 * sqrt(dx * dx + dy * dy) * L_bwhR)))) / 1.8;
-    angle2R = 3.75 * 200 + 3.75 * 3 - 3.75 * 57.29578 * (acos((-dx * dx - dy * dy + L_bwhR * L_bwhR + L_atasR * L_atasR) / (2 * L_atasR * L_bwhR))) / 1.8;
+    const float L_atasR = 39.5, L_bwhR = 33.5;
+    angle1R = (-8 * 3.75  * 3 + 8 * 3.75 * 57.29578 * (atan(dx / dy) + acos((dx * dx + dy * dy + L_bwhR * L_bwhR - L_atasR * L_atasR) / (2 * sqrt(dx * dx + dy * dy) * L_bwhR)))) / 1.8;
+    angle2R = 3.75 * 200 - 3.75 * 4 - 3.75 * 57.29578 * (acos((-dx * dx - dy * dy + L_bwhR * L_bwhR + L_atasR * L_atasR) / (2 * L_atasR * L_bwhR))) / 1.8;
 }
 void Arm::calculateBuang(float dx, float dy, float dxR, float dyR) {
     dy = dy + 17;
     dyR = dyR + 17;
+    // dxR = dxR;
+    // dx = dx;
+    // dy = 68;
+    // dyR = 68;
+    // dx = 15;
+    // dxR = -15;
     const float L_atasR = 38, L_bwhR = 33.5;
     const float L_atas = 37, L_bwh = 36;
     float xdaun = dx - 52; float xkertas = dx - 26; float xplastik = dx;
@@ -727,19 +818,19 @@ bool Arm::done() {
 
 void Arm::sucker_takeL(Servo servo, int relayPin) {
   digitalWrite(relayPin, LOW); // Turn On Valve
-  servo.write(0); delay (900);
+  servo.write(0); delay (1100);
   servo.write(90);
   delay(100);
-  servo.write(180); delay(1100);
+  servo.write(180); delay(1300);
   servo.write(90);
 }
 
 void Arm::sucker_takeR(Servo servo, int relayPin) {
   digitalWrite(relayPin, LOW); // Turn On Valve
-  servo.write(0); delay (1200);
+  servo.write(0); delay (1300);
   servo.write(90);
   delay(100);
-  servo.write(180); delay(1400);
+  servo.write(180); delay(1500);
   servo.write(90);
 }
 
@@ -757,7 +848,7 @@ void Arm::sucker_check_metal(Servo servo) {
   servo.write(0); delay (200);
   servo.write(90);
   delay(100);
-  servo.write(180); delay(500);
+  servo.write(180); delay(300);
   servo.write(90);
 }
 

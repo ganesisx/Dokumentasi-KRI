@@ -58,7 +58,7 @@ float pos = 0, enc_pulse = 0;
 const int channelA = 2, channelB=3;
 int pinA, pinB; //Condition of channelA and channel B
 float r_wheel = 3.0; // whel radius
-float jarak_checkpoint = 120.0;
+float jarak_checkpoint = 110.0;
 
 // Encoder encMotor0(63, 64, 330);
 // Encoder encMotor1(65, 66, 330);
@@ -230,7 +230,7 @@ unsigned long start_search;
 unsigned long stop_search = 2000;
 int count = 0;
 int checkpoint = 0;
-
+int nyala = 0;
 #define BUTTON_MAIN A2
 
 
@@ -266,7 +266,7 @@ NOTE: space is the delimiter
 const int data_length = 8;  // Variable to hold each serial data length
 char data[data_length];     // Variable to hold arguments
 int chr;                   // Variable to hold an input character
-int state = -1;             // Variable to determine which parmeter is being read
+int state = 5;             // Variable to determine which parmeter is being read
 short idx = 0;              // Variable of data array index
 void parse_data();          // Parsing incoming data
 void input_commands();      // Insert value to desired variable after parsing serial input
@@ -508,6 +508,14 @@ void kanan() {
 
   Serial.print("pos (kanan)= ");
   Serial.println(pos);
+  if (checkpoint == 23 && pos <= 10 && pos >= -10 ){
+    spd0 = 0;
+    spd1 = 0;
+    spd2 = 0;
+    spd3 = 0;
+    state = 8;
+
+  }
 
   if (pos <= 70) {
     spd0 = -40;
@@ -808,7 +816,7 @@ void setup() {
   // #ifdef DEBUG
   //   Serial.println("Testing Values Using Serial Montior");
   // #endif
-  delay(5000);
+  // delay(5000);
 }
 
 float ultrasonic() {
@@ -833,19 +841,29 @@ float ultrasonic() {
   return distance_kanan, distance_kiri;
 }
 
+
+// Function to reset the Arduino
+void resetArduino() {
+  asm volatile ("  jmp 0");
+}
+
 void loop() {
-  while (digitalRead(BUTTON_MAIN) == LOW) {
+  if (digitalRead(BUTTON_MAIN) == LOW) {
+    if (nyala == 1){
+      resetArduino();
+      nyala = 0;
+    }
     stop();
   }
-
+    nyala = 1;
     // Position from Extra Encoder
     pos =  ((float)enc_pulse * 0.000125) * 6.2832 * r_wheel;
     // Serial.print(pos);
     // Serial.print("\t");
     // Serial.print(checkpoint);
     // Serial.print("\t");
-    // Serial.print("Q ");
-    // Serial.println(state);
+    Serial.print("Q ");
+    Serial.println(state);
     
 
     // Serial.print(enc_pulse);
@@ -895,11 +913,12 @@ void loop() {
 
     }
     else if (state == 4) { // jalan ke tengah dari kiri
+      checkpoint = 23;
       kanan();
       count = 0;
       if (pos <= 10 && pos >=-10) {
-        state = 5;
-        checkpoint = 2;
+        state = 8;
+        // checkpoint = 2;
         // tengah();
       }
     // count = 0;
@@ -910,12 +929,12 @@ void loop() {
     // tengah();
 
     }
-    else if (state == 5) { // calculasi posisi tong sampah
+    else if (state == 5) { // kalkulasi posisi tong sampah
       stop();
       Serial.print("Q ");
       Serial.println("buang");
       if(Serial.available()>0) { //arm.selesai dihapus sementara
-        Serial.println("state 0");
+        // Serial.println("state 0");
         chr = Serial.parseInt();
         if (chr == -999) {
           parse_data();
@@ -1005,27 +1024,28 @@ void parse_data() {
   arm2.posX = Serial.parseFloat(); arm2.posY = Serial.parseFloat(); arm2.type = Serial.parseInt();
   float skip = Serial.parseFloat();
 
-  Serial.print("S"); Serial.print(", ");
-  Serial.print(arm1.posX); Serial.print(","); Serial.print(arm1.posY); Serial.print(",");
-  Serial.print(arm2.posX); Serial.print(","); Serial.println(arm2.posY);
+  // Serial.print("S"); Serial.print(", ");
+  // Serial.print(arm1.posX); Serial.print(","); Serial.print(arm1.posY); Serial.print(",");
+  // Serial.print(arm2.posX); Serial.print(","); Serial.println(arm2.posY);
   // }
   if (arm1.type == 6 && arm2.type == 6) {
     arm.calculateBuang(arm1.posX, arm1.posY, arm2.posX, arm2.posY);
     state = 8;
   }
 
-  if(arm1.type != 0 && arm1.type != 6){
-    if(arm1.posX != 0 || arm1.posY != 0) {
-      arm.calculate(arm1.posX, arm1.posY);
-    }
-  }
 
   if(arm2.type != 0 && arm2.type != 6){
     if (arm2.posX != 0 || arm2.posY != 0) {
       arm.calculateR(arm2.posX, arm2.posY);
     }
   }
-  if(arm1.type <= 0 && arm2.type <= 0) {
+  else if(arm1.type != 0 && arm1.type != 6){
+    if(arm1.posX != 0 || arm1.posY != 0) {
+      arm.calculate(arm1.posX, arm1.posY);
+    }
+  }
+  
+  else if(arm1.type <= 0 && arm2.type <= 0) {
     count += 1;
     Serial.println(count);
     if (count >= 10) {
@@ -1042,7 +1062,7 @@ void parse_data() {
 
       }
       else if (checkpoint == 2 && arm.Lstate == 2 && arm.Rstate == 2) {
-        state = 5;
+        state = 4;
         Serial.println("Chechkpoint 2 selesai");
         arm.kalibrasi();
 
